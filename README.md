@@ -1,24 +1,32 @@
 Laravel Skill Test Submission
 📌 Overview
 
-This repository contains a Laravel-based implementation for a technical skill test.
-The project focuses on backend correctness, query logic, authorization, and data integrity, rather than UI completeness.
+This repository contains my submission for Laravel Skill Test 1.
+The goal of this test is to implement RESTful routes for a Post model using Laravel 12, following Laravel best practices and the requirements defined in the original test repository.
 
-All requirements listed in the test instructions have been implemented and verified through seed data and query scopes.
+The implementation focuses on:
+
+Proper post visibility logic (draft, scheduled, published)
+
+Authentication & authorization using Laravel built-in features
+
+Clean controller logic with policies and query scopes
+
+JSON-based responses suitable for passing to views
 
 🛠 Tech Stack
 
-Laravel: 12.x
+Framework: Laravel 12
 
-PHP: ≥ 8.2
+PHP: 8.4
 
 Database: SQLite
 
-Authentication: Laravel default auth
+Authentication: Laravel session & cookie-based auth
 
-Frontend: Not implemented (backend-focused submission)
+Frontend: Not required (API-focused test)
 
-🚀 Installation & Setup
+⚙️ Installation & Setup
 git clone https://github.com/elwinspranata/laravel-skill-test-submission.git
 cd laravel-skill-test-submission
 
@@ -26,149 +34,121 @@ composer install
 cp .env.example .env
 php artisan key:generate
 
-php artisan migrate --seed
+php artisan migrate
+php artisan db:seed
+
 php artisan serve
 
+🧪 Database Seeding
 
-The application will be available at:
+Sample users and posts are provided via seeders.
 
-http://127.0.0.1:8000
+php artisan db:seed
 
-🧪 Seeded Test Data
 
-Seeders are included to demonstrate all required post states:
-
-Published posts
+Seeded posts include:
 
 Draft posts
 
-Scheduled posts (future published_at)
+Scheduled posts
 
-Posts owned by different users
+Published posts
 
-This allows reviewers to immediately test edge cases without manual setup.
+This ensures that post visibility logic can be properly tested.
 
 📝 Post Status Logic
 
-Post visibility is determined by the following rules:
+Post visibility is determined without cron jobs, strictly through query logic.
 
 Status	Condition
 Draft	is_draft = true
 Scheduled	is_draft = false AND published_at > now()
-Published	is_draft = false AND (published_at <= now() OR published_at IS NULL)
+Published	is_draft = false AND (published_at IS NULL OR published_at <= now())
 
-This logic is implemented in the Post model using the scopePublished() query scope and does not rely on cron jobs, as required.
+Scheduled posts become published automatically when queried after published_at.
 
-📚 Implemented Routes & Behavior
-GET /posts
+🚀 Implemented Routes & Behavior
+GET /posts — posts.index
 
-Returns published posts only
+Returns paginated (20 per page) list of active posts
 
-Pagination: 20 posts per page
+Excludes draft and scheduled posts
 
-Automatically includes scheduled posts when published_at <= now()
+Includes author (user) data
 
-Uses scopePublished()
+Returns JSON response
 
-GET /posts/create
+GET /posts/create — posts.create
 
-Requires authentication
+Authenticated users only
 
-Returns a string identifier:
+Returns the string:
 
-'posts.create'
+posts.create
 
 
-Note: This follows the test requirement and intentionally does not render a view.
+ℹ️ Per test instructions, view rendering is not required.
 
-POST /posts
+POST /posts — posts.store
 
-Requires authentication
+Authenticated users only
 
-Creates a new post for the authenticated user
+Validates input before creation
 
-Validation handled via request data
+Creates a new post associated with the authenticated user
 
-Supports draft, scheduled, and published states
+Returns appropriate HTTP response
 
-GET /posts/{post}
+GET /posts/{post} — posts.show
 
-Returns a post only if published
+Returns a single published post
 
-Unpublished posts return 404
+Returns 404 if the post is draft or scheduled
 
-Visibility is enforced explicitly in the controller
+JSON response format
 
-GET /posts/{post}/edit
+GET /posts/{post}/edit — posts.edit
 
-Requires authentication
+Only the post author can access
 
-Requires ownership (policy-based)
+Returns the string:
 
-Returns a string identifier:
+posts.edit
 
-'posts.edit'
+PUT/PATCH /posts/{post} — posts.update
 
-PUT /posts/{post}
+Only the post author can update
 
-Requires authentication
+Validates input before update
 
-Requires ownership (PostPolicy@update)
+Returns appropriate HTTP response
 
-Updates post data safely
+DELETE /posts/{post} — posts.destroy
 
-DELETE /posts/{post}
+Only the post author can delete
 
-Requires authentication
+Returns JSON response confirming deletion
 
-Requires ownership (PostPolicy@delete)
+🔐 Authorization & Policies
 
-Returns JSON response on success
+Authorization is handled using Laravel Policies:
 
-🔐 Authorization (Policy)
+PostPolicy ensures only the post author can:
 
-Authorization is handled using PostPolicy:
+Edit
 
-update: Only the post owner can update
+Update
 
-delete: Only the post owner can delete
+Delete
 
-Policies are auto-discovered using Laravel 12’s default policy registration.
+Policies are auto-discovered in Laravel 12 and enforced using Gate::authorize().
 
-🧠 Design Decisions
-Why do create and edit return strings?
+📂 Architecture Notes
 
-The test specification only requires that these routes exist and respond correctly.
-Returning string identifiers ensures:
+Route Model Binding is used across all relevant routes
 
-Routes are functional
+Query Scopes are used to encapsulate post visibility logic
 
-No assumptions are made about UI frameworks
+No frontend/UI layer is implemented as it is not required by the test
 
-The submission stays backend-focused, as intended
-
-Why inline validation instead of Form Requests?
-
-Inline validation was used to keep the implementation concise and focused on test requirements.
-This can easily be refactored to Form Requests in a production scenario.
-
-✅ Requirement Checklist
-Requirement	Status
-Pagination (20 items)	✅
-Draft / Scheduled / Published logic	✅
-No cron dependency	✅
-Authorization via policy	✅
-Route model binding	✅
-Seeded test data	✅
-README documentation	✅
-🧾 Notes for Reviewer
-
-This submission prioritizes correct logic, data handling, and authorization
-
-UI rendering is intentionally omitted
-
-All core Laravel best practices relevant to the test scope are followed
-
-👤 Author
-
-Elwin Pranata Negara
+Controller responses are designed to be view-ready or API-ready
