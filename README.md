@@ -1,153 +1,173 @@
-Overview
+Laravel Skill Test Submission
+📌 Overview
 
-This project is a Laravel Blog Post Management API built to fulfill the requirements of the Laravel Skill Test.
-The application demonstrates proper usage of MVC architecture, Form Request Validation, Authorization Policies, RESTful controllers, and clean Eloquent queries.
+This repository contains a Laravel-based implementation for a technical skill test.
+The project focuses on backend correctness, query logic, authorization, and data integrity, rather than UI completeness.
 
-🧩 Features
-
-CRUD Blog Posts (Create, Read, Update, Delete)
-
-Authentication using Laravel default auth
-
-Authorization using PostPolicy
-
-Validation using Form Request
-
-RESTful API responses (JSON)
-
-Clean and readable controller structure
-
-Ownership-based access control
+All requirements listed in the test instructions have been implemented and verified through seed data and query scopes.
 
 🛠 Tech Stack
 
-Laravel (latest stable)
+Laravel: 12.x
 
-PHP 8+
+PHP: ≥ 8.2
 
-MySQL
+Database: SQLite
 
-Laravel Policies & Form Requests
+Authentication: Laravel default auth
 
-📂 Project Structure
-app/
- ├── Http/
- │   ├── Controllers/
- │   │   └── PostController.php
- │   ├── Requests/
- │   │   ├── StorePostRequest.php
- │   │   └── UpdatePostRequest.php
- ├── Models/
- │   └── Post.php
- ├── Policies/
- │   └── PostPolicy.php
-routes/
- └── api.php
-database/
- └── migrations/
+Frontend: Not implemented (backend-focused submission)
 
-⚙️ Installation & Setup
-1️⃣ Clone Repository
+🚀 Installation & Setup
 git clone https://github.com/elwinspranata/laravel-skill-test-submission.git
 cd laravel-skill-test-submission
 
-2️⃣ Install Dependencies
 composer install
-
-3️⃣ Environment Configuration
 cp .env.example .env
 php artisan key:generate
 
-
-Configure your database credentials in .env.
-
-4️⃣ Run Migration
-php artisan migrate
-
-5️⃣ Run Server
+php artisan migrate --seed
 php artisan serve
 
-🔐 Authentication
 
-This project uses Laravel authentication.
-All Post endpoints require an authenticated user.
+The application will be available at:
 
-📌 API Endpoints
-Method	Endpoint	Description
-GET	/api/posts	Get all posts
-POST	/api/posts	Create a new post
-GET	/api/posts/{id}	Show a single post
-PUT	/api/posts/{id}	Update a post (owner only)
-DELETE	/api/posts/{id}	Delete a post (owner only)
-🛡 Authorization (Policy)
+http://127.0.0.1:8000
+
+🧪 Seeded Test Data
+
+Seeders are included to demonstrate all required post states:
+
+Published posts
+
+Draft posts
+
+Scheduled posts (future published_at)
+
+Posts owned by different users
+
+This allows reviewers to immediately test edge cases without manual setup.
+
+📝 Post Status Logic
+
+Post visibility is determined by the following rules:
+
+Status	Condition
+Draft	is_draft = true
+Scheduled	is_draft = false AND published_at > now()
+Published	is_draft = false AND (published_at <= now() OR published_at IS NULL)
+
+This logic is implemented in the Post model using the scopePublished() query scope and does not rely on cron jobs, as required.
+
+📚 Implemented Routes & Behavior
+GET /posts
+
+Returns published posts only
+
+Pagination: 20 posts per page
+
+Automatically includes scheduled posts when published_at <= now()
+
+Uses scopePublished()
+
+GET /posts/create
+
+Requires authentication
+
+Returns a string identifier:
+
+'posts.create'
+
+
+Note: This follows the test requirement and intentionally does not render a view.
+
+POST /posts
+
+Requires authentication
+
+Creates a new post for the authenticated user
+
+Validation handled via request data
+
+Supports draft, scheduled, and published states
+
+GET /posts/{post}
+
+Returns a post only if published
+
+Unpublished posts return 404
+
+Visibility is enforced explicitly in the controller
+
+GET /posts/{post}/edit
+
+Requires authentication
+
+Requires ownership (policy-based)
+
+Returns a string identifier:
+
+'posts.edit'
+
+PUT /posts/{post}
+
+Requires authentication
+
+Requires ownership (PostPolicy@update)
+
+Updates post data safely
+
+DELETE /posts/{post}
+
+Requires authentication
+
+Requires ownership (PostPolicy@delete)
+
+Returns JSON response on success
+
+🔐 Authorization (Policy)
 
 Authorization is handled using PostPolicy:
 
-Only the post owner can update or delete their post
+update: Only the post owner can update
 
-Policy registered in AuthServiceProvider
+delete: Only the post owner can delete
 
-Example:
+Policies are auto-discovered using Laravel 12’s default policy registration.
 
-public function update(User $user, Post $post)
-{
-    return $user->id === $post->user_id;
-}
+🧠 Design Decisions
+Why do create and edit return strings?
 
-✅ Validation (Form Request)
+The test specification only requires that these routes exist and respond correctly.
+Returning string identifiers ensures:
 
-Validation logic is separated using Form Request:
+Routes are functional
 
-StorePostRequest
+No assumptions are made about UI frameworks
 
-UpdatePostRequest
+The submission stays backend-focused, as intended
 
-Example rules:
+Why inline validation instead of Form Requests?
 
-return [
-    'title' => 'required|string|max:255',
-    'content' => 'required|string',
-];
+Inline validation was used to keep the implementation concise and focused on test requirements.
+This can easily be refactored to Form Requests in a production scenario.
 
-🧠 Controller Best Practices
+✅ Requirement Checklist
+Requirement	Status
+Pagination (20 items)	✅
+Draft / Scheduled / Published logic	✅
+No cron dependency	✅
+Authorization via policy	✅
+Route model binding	✅
+Seeded test data	✅
+README documentation	✅
+🧾 Notes for Reviewer
 
-Uses Form Request
+This submission prioritizes correct logic, data handling, and authorization
 
-Uses Policy authorization
+UI rendering is intentionally omitted
 
-No validation or authorization logic inside controller
-
-Uses auth()->id() instead of passing user ID manually
-
-Returns JSON responses consistently
-
-📊 Query Best Practice (Index)
-Post::with('user')
-    ->latest()
-    ->paginate(10);
-
-
-Uses eager loading
-
-Uses pagination
-
-Uses latest ordering
-
-🚀 Conclusion
-
-This project fully implements:
-
-Laravel MVC principles
-
-Clean controller logic
-
-Proper validation & authorization
-
-Secure ownership control
-
-RESTful API standards
-
-All requirements listed in the skill test README have been carefully implemented and reviewed.
+All core Laravel best practices relevant to the test scope are followed
 
 👤 Author
 
